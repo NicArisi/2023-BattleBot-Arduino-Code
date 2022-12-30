@@ -32,6 +32,7 @@ void setup() {
   pinMode(BIN1_PIN, OUTPUT);
   pinMode(BPWM_PIN, OUTPUT);
   pinMode(BOutPin, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -64,8 +65,10 @@ void loop() {
   int left = x + y;
   int right = x - y;
   if(DisChannelDetect==true){
-    left=255;
-    right=0;
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(500);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(100);
   }
   // Drive motor
   drive(left, right);
