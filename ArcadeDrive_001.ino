@@ -71,18 +71,14 @@ void drive(int speed_a, int speed_b) {
   speed_b = constrain(speed_b, -255, 255);
 
   // Set direction for motor A
-  if ( speed_a == 0 ) {
-    digitalWrite(AIN1_PIN, HIGH);
-  } else if ( speed_a > 0 ) {
+  if ( speed_a > 0 ) {
     digitalWrite(AIN1_PIN, LOW);
   } else {
     digitalWrite(AIN1_PIN, HIGH);
   }
 
   // Set direction for motor B
-  if ( speed_b == 0 ) {
-    digitalWrite(BIN1_PIN, HIGH);
-  } else if ( speed_b > 0 ) {
+  if ( speed_b > 0 ) {
     digitalWrite(BIN1_PIN, LOW);
   } else {
     digitalWrite(BIN1_PIN, HIGH);
