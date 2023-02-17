@@ -1,11 +1,3 @@
-/**
- * Two Channel Receiver
- * Author: Shawn Hymel (SparkFun Electronics)
- * Editted and Stolen by: Abington Engineering Team
- * Mixes two channels for arcade drive.
- */
-
-// Controller pins
 const int CH_1_PIN = 10;
 const int CH_2_PIN = 11;
 const int BInPin = 9;
@@ -16,8 +8,6 @@ const int APWM_PIN = 5;
 const int BIN1_PIN = 7;
 const int BPWM_PIN = 6;
 const int BOutPin = 3;
-//0 is y, 1 is x, 2 is blade
-bool DisChannelDetect = false;
 
 // Parameters
 const int deadzone = 35;  // Anything between -20 and 20 is stop. This code acts as a circle's area of when the PWM values will start to be transmitted. 
@@ -33,7 +23,6 @@ void setup() {
   pinMode(BPWM_PIN, OUTPUT);
   pinMode(BOutPin, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  Serial.begin(9600);
 }
 
 void loop() {
@@ -47,39 +36,30 @@ void loop() {
   x = pulseToPWMX(x);
   b = pulseToPWMB(b);
   //if to check for any disconnected channel
-  if(pulseIn(CH_2_PIN, HIGH)==0 || pulseIn(CH_1_PIN, HIGH)==0 || pulseIn(BInPin, HIGH)==0){
-      y=0;
-      x=0;
-      b=0;
-      DisChannelDetect=true;
-  }else{
-    DisChannelDetect=false;
-  }
-  Serial.println(DisChannelDetect);
-  //delay(500);
-  //blade drive function with the integer of b being the input value of int b from the function. 
-  bladeDrive(b);
-
-  // Mix for arcade drive. X comes first to allow for the forward movement of the stick to actaully move the stick forward. 
-  //our physical error code, should make the bot spin around in circles when triggered
-  int left = x + y;
-  int right = x - y;
-  if(DisChannelDetect==true){
+  if(pulseIn(CH_2_PIN, HIGH) > 1900 || pulseIn(CH_2_PIN, HIGH)<1090|| pulseIn(CH_1_PIN, HIGH)>1890 || pulseIn(CH_1_PIN, HIGH)<1070 || pulseIn(BInPin, HIGH)>1900 || pulseIn(BInPin, HIGH)<1070){
+    y=0;
+    x=0;
+    b=0;
     digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
     digitalWrite(LED_BUILTIN, LOW);
     delay(100);
   }
+  //blade drive function with the integer of b being the input value of int b from the function. 
+  bladeDrive(b);
+
+  // Mix for arcade drive. X comes first to allow for the forward movement of the stick to actaully move the stick forward. 
+  //our physical error code, should make the bot spin around in circles when triggered
+  int left = y + x;
+  int right = y - x;
   // Drive motor
   drive(left, right);
 }
 
 void bladeDrive(int b){
   if(b>100){
-    //analogWrite(BOutPin, 250);
     digitalWrite(BOutPin, HIGH);
   } else{
-    //analogWrite(BOutPin, 0);
     digitalWrite(BOutPin, LOW);
   }
   
@@ -89,19 +69,19 @@ void drive(int speed_a, int speed_b) {
   // Limit speed between -255 and 255
   speed_a = constrain(speed_a, -255, 255);
   speed_b = constrain(speed_b, -255, 255);
-
+  
   // Set direction for motor A
   if(speed_a > 0){
-    digitalWrite(AIN1_PIN, LOW);
-  }else{
     digitalWrite(AIN1_PIN, HIGH);
+  }else{
+    digitalWrite(AIN1_PIN, LOW);
   }
 
   // Set direction for motor B
   if(speed_b > 0){
-    digitalWrite(BIN1_PIN, LOW);
-  }else{
     digitalWrite(BIN1_PIN, HIGH);
+  }else{
+    digitalWrite(BIN1_PIN, LOW);
   }
   //The digital outputs were inverted to allow the forward movement with the x to y config. 
 
@@ -113,7 +93,7 @@ void drive(int speed_a, int speed_b) {
 // Convert RC pulse value to motor PWM value. The reason for multiple pulse readers is due to different signal ranges coming from the receiever. This allows for correct movement
 int pulseToPWMY(int pulse) {
   // If we're receiving numbers, convert them to motor PWM
-    pulse = map(pulse, 1081, 1873, -500, 500);
+    pulse = map(pulse, 1107, 1899, -500, 500);
     pulse = constrain(pulse, -255, 255);
   // Anything in deadzone should stop the motor
   if ( abs(pulse) <= deadzone ) {
@@ -124,7 +104,7 @@ int pulseToPWMY(int pulse) {
 }
 int pulseToPWMX(int pulse) {
   // If we're receiving numbers, convert them to motor PWM
-  pulse = map(pulse, 1107, 1899, -500, 500);
+  pulse = map(pulse, 1081, 1873, -500, 500);
   pulse = constrain(pulse, -255, 255);
   // Anything in deadzone should stop the motor
   if ( abs(pulse) <= deadzone ) {
