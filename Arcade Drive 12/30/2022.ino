@@ -12,9 +12,7 @@ const int BOutPin = 3;
 // Parameters
 const int deadzone = 35;  // Anything between -20 and 20 is stop. This code acts as a circle's area of when the PWM values will start to be transmitted.
 //Joystick is in the circle, no PWM transmitted, when out, PWM transmitted to ESC.
-/*We may to adjust this to our controller.
-   Some sort of a test in the setup function to see the current voltage and set the deadzone to somewhere around that.
-*/
+
 void setup() {
   // Configure pins
   pinMode(AIN1_PIN, OUTPUT);
@@ -31,12 +29,12 @@ void loop() {
   int y = pulseIn(CH_2_PIN, HIGH);
   int x = pulseIn(CH_1_PIN, HIGH);
   int b = pulseIn(BInPin, HIGH);
+  
   // Convert to PWM value (-255 to 255)
   y = pulseToPWMY(y);
   x = pulseToPWMX(x);
-  b = pulseToPWMB(b);
   //if to check for any disconnected channel
-  if (pulseIn(CH_2_PIN, HIGH) > 2000 || pulseIn(CH_2_PIN, HIGH) < 1090 || pulseIn(CH_1_PIN, HIGH) > 2000 || pulseIn(CH_1_PIN, HIGH) < 1000 || pulseIn(BInPin, HIGH) > 2000 || pulseIn(BInPin, HIGH) < 1000) {
+  if (pulseIn(CH_2_PIN, HIGH) > 2000 || pulseIn(CH_2_PIN, HIGH) < 1000 || pulseIn(CH_1_PIN, HIGH) > 2000 || pulseIn(CH_1_PIN, HIGH) < 1000 || pulseIn(BInPin, HIGH) > 2000 || pulseIn(BInPin, HIGH) < 1000) {
     y = 0;
     x = 0;
     b = 0;
@@ -50,14 +48,14 @@ void loop() {
 
   // Mix for arcade drive. X comes first to allow for the forward movement of the stick to actaully move the stick forward.
   //our physical error code, should make the bot spin around in circles when triggered
-  int left = y + x;
-  int right = y - x;
+  int left = x + y;
+  int right = x - y;
   // Drive motor
   drive(left, right);
 }
 
 void bladeDrive(int b) {
-  if (b > 100) {
+  if (b > 1800) {
     digitalWrite(BOutPin, HIGH);
   } else {
     digitalWrite(BOutPin, LOW);
@@ -103,15 +101,6 @@ int pulseToPWMY(int pulse) {
 int pulseToPWMX(int pulse) {
   // If we're receiving numbers, convert them to motor PWM
   pulse = map(pulse, 1081, 1873, -255, 255);
-  // Anything in deadzone should stop the motor
-  if ( abs(pulse) <= deadzone ) {
-    pulse = 0;
-  }
-  return pulse;
-}
-int pulseToPWMB(int pulse) {
-  // If we're receiving numbers, convert them to motor PWM
-  pulse = map(pulse, 1490, 1884, 0, 255);
   // Anything in deadzone should stop the motor
   if ( abs(pulse) <= deadzone ) {
     pulse = 0;
