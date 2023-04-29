@@ -19,18 +19,17 @@ const int BLADE_PIN = 9;
 // Motor driver pins
 //const int STBY_PIN = 9; //Motor driver's standyby pin
 const int AIN1_PIN = 2; // Moves motor A forward
-const int APWM_PIN = 3; // Motor A's speed.
+const int APWM_PIN = 5; // Motor A's speed.
 const int BIN1_PIN = 7;
 const int BPWM_PIN = 6;
 
-const int BLADEIN_PIN = 3;
+const int BOutPin = 3;
 
 // Parameters
-const int deadzone = 20;  // Anything between -20 and 20 is stop
+const int deadzone = 30;  // Anything between -20 and 20 is stop
 /*We may to adjust this to our controller. 
  * Some sort of a test in the setup function to see the current voltage and set the deadzone to somewhere around that.
  */
-
 
 
 void setup() {
@@ -40,7 +39,7 @@ void setup() {
   pinMode(APWM_PIN, OUTPUT);
   pinMode(BIN1_PIN, OUTPUT);
   pinMode(BPWM_PIN, OUTPUT);
-  pinMode(BLADEIN_PIN, OUTPUT);
+  pinMode(BOutPin, OUTPUT);
   
   Serial.begin(9600);
 }
@@ -49,17 +48,31 @@ void loop() {
   // Read pulse width from receiver
   int y = pulseIn(CH_2_PIN, HIGH);
   int x = pulseIn(CH_1_PIN, HIGH);
-  
+  int b = pulseIn(BLADE_PIN, HIGH);
   // Convert to PWM value (-255 to 255)
   y = pulseToPWM(y);
   x = pulseToPWM(x);
 
   // Mix for arcade drive
   int left = y + x;
-  int right = y - x;
-
-  //test_deadzone(x, y);
+  int right = x - y;
+  /*
+  int left;
+  int right;
+  if (x < 0){
+    left = (x + y);
+    right = (y - x)/2;
+  }else if(x > 0){
+    left = (x + y)/2;
+    right = (y - x);
+  }else{
+    left = x + y;
+    right = y - x;
+  }
+  */
+  bladeDrive(b);
   // Drive motor
+  
   drive(left, right);
   //Drive blade motor
   /*int pulseB = pulseIn(BLADE_PIN, HIGH)
@@ -75,11 +88,20 @@ void loop() {
   //digitalWrite(AIN1_PIN, HIGH);
   //digitalWrite(BIN1_PIN, HIGH);
   //delay(1000);
+  delay(150);
 }
 
+void bladeDrive(int b) {
+  Serial.println(b);
+  if (b > 1700) {
+    digitalWrite(BOutPin, HIGH);
+  } else {
+    digitalWrite(BOutPin, LOW);
+  }
+}
 // Positive for forward, negative for reverse
 void drive(int speed_a, int speed_b) {
-
+  
   // Limit speed between -255 and 255
   speed_a = constrain(speed_a, -255, 255);
   speed_b = constrain(speed_b, -255, 255);
@@ -115,10 +137,9 @@ int pulseToPWM(int pulse) {
   }
 
   // Anything in deadzone should stop the motor
-  if ( abs(pulse) <= deadzone ) {
+  if (abs(pulse) <= deadzone ) {
     pulse = 0;
   }
-  Serial.print(pulse);
   return pulse;
   
 }
