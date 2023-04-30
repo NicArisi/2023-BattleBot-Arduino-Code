@@ -1,23 +1,17 @@
-const int CH_1_PIN = 10;
-const int CH_2_PIN = 11;
-const int BLADE_PIN = 9;
+const int CH_1_PIN = 10; //receiver pin 1 reader, var b determinant 
+const int CH_2_PIN = 11; //receiver pin 2 reader, var x determinant 
+const int BLADE_PIN = 9; //receiver pin 3 reader
 
 // Motor driver pins
-//const int STBY_PIN = 9; //Motor driver's standyby pin
+
 const int AIN1_PIN = 2; // Moves motor A forward
 const int APWM_PIN = 5; // Motor A's speed.
-const int BIN1_PIN = 7;
-const int BPWM_PIN = 6;
-
-const int BOutPin = 3;
+const int BIN1_PIN = 7; // Moves motor B forward
+const int BPWM_PIN = 6; // Motor B's speed.
+const int BOutPin = 3; //Weapon Motor Signal OutPut
 
 // Parameters
-const int deadzone = 28;  // Anything between -20 and 20 is stop
-/*We may to adjust this to our controller. 
- * Some sort of a test in the setup function to see the current voltage and set the deadzone to somewhere around that.
- */
-
-
+const int deadzone = 28;  // Anything between -28 and 28 is stop
 void setup() {
 
   // Configure pins
@@ -38,6 +32,7 @@ void loop() {
   // Convert to PWM value (-255 to 255)
   y = pulseToPWM(y);
   x = pulseToPWM(x);
+  //check for disconnected wires and heavy EMI
   if ((pulseIn(CH_2_PIN, HIGH) > 2000 || pulseIn(CH_2_PIN, HIGH) < 1000) || (pulseIn(CH_1_PIN, HIGH) > 2000 || pulseIn(CH_1_PIN, HIGH) < 1000) || (pulseIn(BLADE_PIN, HIGH) > 2000 || pulseIn(BLADE_PIN, HIGH) < 1000)) {
     y = 0;
     x = 0;
@@ -52,11 +47,10 @@ void loop() {
   int right = x - y;
   bladeDrive(b);
   // Drive motor
-  
   drive(left, right);
   delay(25);
 }
-
+//control blade motor function 
 void bladeDrive(int b) {
   if (b > 1700) {
     digitalWrite(BOutPin, HIGH);
@@ -92,7 +86,6 @@ void drive(int speed_a, int speed_b) {
 
 // Convert RC pulse value to motor PWM value
 int pulseToPWM(int pulse) {
-  
   // If we're receiving numbers, convert them to motor PWM
   if ( pulse > 1000 ) {
     pulse = map(pulse, 1000, 2000, -500, 500);
@@ -100,11 +93,9 @@ int pulseToPWM(int pulse) {
   } else {
     pulse = 0;
   }
-
   // Anything in deadzone should stop the motor
   if ( abs(pulse) <= deadzone ) {
     pulse = 0;
   }
-
   return pulse;
 }
